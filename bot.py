@@ -59,44 +59,62 @@ async def on_message(message):
     if ctx.valid:
         await client.process_commands(message)
     else:
-        for (tag,channel) in guilds_dictionary[message.guild.id].items():
-            if tag in message.content and message.author.bot == False and guilds_dictionary[message.guild.id][tag] != message.channel.id:
-                chan = client.get_channel(channel)
-                await chan.send(message.content+"\n"+"Original post by " + message.author.mention +":\nhttps://discordapp.com/channels/"+str(message.guild.id)+"/"+str(message.channel.id)+"/"+str(message.id))
+        if message.channel.category.id in guilds_dictionary[message.guild.id].keys():
+            for (channel,tags) in guilds_dictionary[message.guild.id][message.channel.category.id].items():
+                for tag in tags:
+                    if tag in message.content and message.author.bot == False and channel != message.channel.id:
+                        chan = client.get_channel(channel)
+                        await chan.send(message.content+"\n"+"Original post by " + message.author.mention +":\nhttps://discordapp.com/channels/"+str(message.guild.id)+"/"+str(message.channel.id)+"/"+str(message.id))
 
 @client.command()
 @commands.has_role("StratBotMod")
-async def setTag(ctx,tag):
-    guilds_dictionary[ctx.guild.id][tag] = ctx.message.channel.id
+async def addTag(ctx,tag):
+    if ctx.message.channel.category.id not in guilds_dictionary[ctx.guild.id].keys():
+        guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id] = {}
+    if ctx.message.channel.id not in guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id].keys():
+        guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id] = []
+    guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id].append(tag)
     f = open("dict.pkl","wb")
     pickle.dump(guilds_dictionary,f)
     f.close()
     await ctx.send("Messages containing \"" +tag + "\" will now be reposted in this channel")
 
-@setTag.error
-async def setTag_error(ctx,error):
+@addTag.error
+async def addTag_error(ctx,error):
     if isinstance(error, commands.MissingRole):
         await ctx.send("Only StratBotMods can use this command")
 
 @client.command()
-async def showTag(ctx):
-    for (key,value) in guilds_dictionary[ctx.guild.id].items():
-        if value == ctx.message.channel.id:
-            await ctx.send("Auto detection tag for this channel is: " + key)
-            return
-    await ctx.send("No tag set for this channel")
+async def showTags(ctx):
+    if ctx.message.channel.category.id in guilds_dictionary[ctx.guild.id].keys() and ctx.message.channel.id in guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id].keys():
+        await ctx.send("Auto detection tags for this channel: " + str(guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id])[1:-1])
+    else:
+        await ctx.send("No tag set for this channel")
 
 @client.command()
-async def removeTag(ctx):
-    for (key,value) in guilds_dictionary[ctx.guild.id].items():
-        if value == ctx.message.channel.id:
-            del guilds_dictionary[ctx.guild.id][key]
+async def removeAllTags(ctx):
+    if ctx.message.channel.id in guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id].keys():
+        del guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id]
+        f = open("dict.pkl","wb")
+        pickle.dump(guilds_dictionary,f)
+        f.close()
+        await ctx.send("all auto detection tags deleted")
+    else:
+        await ctx.send("No tag set for this channel")
+
+@client.command()
+async def removeTag(ctx,tag):
+    if ctx.message.channel.id in guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id].keys():
+        if tag in guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id]:
+            guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id].remove(tag)
             f = open("dict.pkl","wb")
             pickle.dump(guilds_dictionary,f)
             f.close()
             await ctx.send("Auto detection tag deleted")
-            return
-    await ctx.send("No tag set for this channel")
+        else:
+            await ctx.send("This tag doesn't exist")
+    else:
+        await ctx.send("No tag set for this channel")
 
 @client.command()
 async def help(ctx):
