@@ -32,14 +32,20 @@ async def on_ready():
 @client.event
 async def on_guild_join(guild):
     if guild.id not in guilds_dictionary.keys():
-        guilds_dictionary[id] = {}
+        guilds_dictionary[guild.id] = {}
+        f = open("dict.pkl","wb")
+        pickle.dump(guilds_dictionary,f)
+        f.close()
     if not get(guild.roles, name="StratBotMod"):
             await guild.create_role(name="StratBotMod", colour=discord.Colour(0x0062ff))
 
 @client.event
 async def on_guild_remove(guild):
     if guild.id in guilds_dictionary.keys():
-        del guilds_dictionary[id]
+        del guilds_dictionary[guild.id]
+        f = open("dict.pkl","wb")
+        pickle.dump(guilds_dictionary,f)
+        f.close()
 
 @client.event
 async def on_disconnect():
@@ -81,7 +87,19 @@ async def showTag(ctx):
     await ctx.send("No tag set for this channel")
 
 @client.command()
+async def removeTag(ctx):
+    for (key,value) in guilds_dictionary[ctx.guild.id].items():
+        if value == ctx.message.channel.id:
+            del guilds_dictionary[ctx.guild.id][key]
+            f = open("dict.pkl","wb")
+            pickle.dump(guilds_dictionary,f)
+            f.close()
+            await ctx.send("Auto detection tag deleted")
+            return
+    await ctx.send("No tag set for this channel")
+
+@client.command()
 async def help(ctx):
-    await ctx.send("```\nGeneral Use:\n\tThis bot is made to organise your strat channels. By setting an autodetection tag in a channel, the bot will repost any message containing the tag to this channel with a link to the original post. \n\nCommands: \n\tsetTag [tag]: Set the auto detection tag redirecting to the channel where the command is called\n\tshowTag: Show the auto detection tag currently set for the channel where the command is called\n```")
+    await ctx.send("```\nGeneral Use:\n\tThis bot is made to organise your strat channels. By setting an auto detection tag in a channel, the bot will repost any message containing the tag to this channel with a link to the original post. \n\nCommands: \n\tsetTag [tag]: Set the auto detection tag redirecting to the channel where the command is called\n\tshowTag: Show the auto detection tag currently set for the channel where the command is called\n\tremoveTag: Remove the auto detection tag set for the channel where the command is called\n```")
 
 client.run(token)
