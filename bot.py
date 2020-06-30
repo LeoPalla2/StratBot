@@ -19,10 +19,16 @@ async def on_ready():
     print("Bot Online")
     print("Name: {}".format(client.user.name))
     print("ID: {}".format(client.user.id))
-    f = open("dict.pkl","rb")
-    global guilds_dictionary
-    guilds_dictionary = pickle.load(f)
-    f.close()
+    try:
+        f = open("dict.pkl","rb")
+        global guilds_dictionary
+        guilds_dictionary = pickle.load(f)
+        f.close()
+    except:
+        print("file does not exist")
+        pass
+    if not isinstance(guilds_dictionary,dict):
+        guilds_dictionary = {}
     for guild in client.guilds:
         if not get(guild.roles, name="StratBotMod"):
             await guild.create_role(name="StratBotMod", colour=discord.Colour(0x0062ff))
