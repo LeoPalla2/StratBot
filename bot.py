@@ -95,7 +95,7 @@ async def addTag_error(ctx,error):
 
 @client.command()
 async def showTags(ctx):
-    if ctx.message.channel.category.id in guilds_dictionary[ctx.guild.id].keys() and ctx.message.channel.id in guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id].keys():
+    if ctx.message.channel.category.id in guilds_dictionary[ctx.guild.id].keys() and ctx.message.channel.id in guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id].keys() and len(guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id]) > 0:
         await ctx.send("Auto detection tags for this channel: " + str(guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id])[1:-1])
     else:
         await ctx.send("No tag set for this channel")
@@ -119,7 +119,7 @@ async def removeTag(ctx,tag):
             f = open("dict.pkl","wb")
             pickle.dump(guilds_dictionary,f)
             f.close()
-            await ctx.send("Auto detection tag deleted")
+            await ctx.send(tag+ " deleted from the auto detection tags list")
         else:
             await ctx.send("This tag doesn't exist")
     else:
