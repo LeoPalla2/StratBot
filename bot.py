@@ -79,11 +79,14 @@ async def addTag(ctx,tag):
         guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id] = {}
     if ctx.message.channel.id not in guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id].keys():
         guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id] = []
-    guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id].append(tag)
-    f = open("dict.pkl","wb")
-    pickle.dump(guilds_dictionary,f)
-    f.close()
-    await ctx.send("Messages containing \"" +tag + "\" will now be reposted in this channel")
+    if tag not in guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id]:
+        guilds_dictionary[ctx.guild.id][ctx.message.channel.category.id][ctx.message.channel.id].append(tag)
+        f = open("dict.pkl","wb")
+        pickle.dump(guilds_dictionary,f)
+        f.close()
+        await ctx.send("Messages containing \"" +tag + "\" will now be reposted in this channel")
+    else:
+        await ctx.send("This tag is already set for this channel")
 
 @addTag.error
 async def addTag_error(ctx,error):
@@ -124,6 +127,6 @@ async def removeTag(ctx,tag):
 
 @client.command()
 async def help(ctx):
-    await ctx.send("```\nGeneral Use:\n\tThis bot is made to organise your strat channels. By setting an auto detection tag in a channel, the bot will repost any message containing the tag to this channel with a link to the original post. \n\nCommands: \n\tsetTag [tag]: Set the auto detection tag redirecting to the channel where the command is called\n\tshowTag: Show the auto detection tag currently set for the channel where the command is called\n\tremoveTag: Remove the auto detection tag set for the channel where the command is called\n```")
+    await ctx.send("```\nGeneral Use:\n\tThis bot is made to organise your strats channels. By setting auto detection tags in a channel, the bot will repost any message containing the tag to this channel with a link to the original post. Tags and detection are defined within channel categories \n\nCommands: \n\taddTag [tag]: Add a tag to the current channel's tags list if it isn't already defined\n\tshowTags: Show the auto detection tags list for the current channel\n\tremoveTag [tag]: Remove the specified tag set from the current channel's tags list if it exists\n\tremoveAllTags: Remove all tags defined for the current channel\n```")
 
 client.run(token)
