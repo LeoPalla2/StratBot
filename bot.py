@@ -119,7 +119,7 @@ async def removeTag(ctx,tag):
             f = open("dict.pkl","wb")
             pickle.dump(guilds_dictionary,f)
             f.close()
-            await ctx.send(tag+ " deleted from the auto detection tags list")
+            await ctx.send("removed \'"+tag+ "\' from this channel auto detection tags list")
         else:
             await ctx.send("This tag doesn't exist")
     else:
